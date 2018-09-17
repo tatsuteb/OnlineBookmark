@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace OnlineBookmark.Data.Migrations
+namespace OnlineBookmark.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {
