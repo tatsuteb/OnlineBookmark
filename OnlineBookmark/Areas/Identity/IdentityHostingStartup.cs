@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OnlineBookmark.Areas.Identity.Data;
+using OnlineBookmark.Data;
+using OnlineBookmark.Data.Interfaces;
 using OnlineBookmark.Models;
 
 [assembly: HostingStartup(typeof(OnlineBookmark.Areas.Identity.IdentityHostingStartup))]

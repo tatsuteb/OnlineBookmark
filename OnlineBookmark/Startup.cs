@@ -40,7 +40,7 @@ namespace OnlineBookmark
                 options.UseSqlServer(Configuration.GetConnectionString("OnlineBookmarkDbContextConnection"));
             });
 
-            services.AddSingleton<IUserProfileStore, UserProfileStore>();
+            services.AddScoped<IUserProfileStore, UserProfileStore>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
