@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OnlineBookmark.Data;
+using OnlineBookmark.Data.Interfaces;
 
 namespace OnlineBookmark
 {
@@ -32,6 +34,13 @@ namespace OnlineBookmark
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+
+            services.AddDbContext<OnlineBookmarkDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("OnlineBookmarkDbContextConnection"));
+            });
+
+            services.AddSingleton<IUserProfileStore, UserProfileStore>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
