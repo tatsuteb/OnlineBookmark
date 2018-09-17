@@ -1,0 +1,24 @@
+﻿@using Microsoft.AspNetCore.Http.Extensions
+@model OnlineBookmark.Models.Bookmarks.BookmarkCreationModel
+@{
+}
+
+
+<form asp-controller="Bookmarks" asp-action="CreateBookmark" asp-route-returnUrl="@Context.Request.GetDisplayUrl()" method="post" enctype="multipart/form-data">
+    <label>
+        画像を選択
+        <input type="file" asp-for="@Model.ImageFile" accept="image/*" />
+    </label>
+
+    <label>
+        URL
+        <input type="text" asp-for="@Model.Url" />
+    </label>
+
+    <label>
+        説明
+        <textarea asp-for="@Model.Description" rows="20" cols="20"></textarea>
+    </label>
+
+    <button type="submit">登録</button>
+</form>
