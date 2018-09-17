@@ -33,5 +33,35 @@ namespace OnlineBookmark.Data
 
             return true;
         }
+
+
+        public async Task<UserProfile> GetUserProfileByUidAsync(string uid)
+        {
+            var userProfile = await this._dbContext.UserProfiles
+                .FindAsync(uid);
+
+            return userProfile;
+        }
+
+
+        public async Task<bool> DeleteAsync(UserProfile userProfile)
+        {
+            if (userProfile == null)
+                return false;
+
+            try
+            {
+                this._dbContext
+                    .Remove(userProfile);
+                await this._dbContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return false;
+            }
+
+            return true;
+        }
     }
 }

@@ -9,5 +9,7 @@ namespace OnlineBookmark.Data.Interfaces
     public interface IUserProfileStore
     {
         Task<bool> CreateAsync(UserProfile userProfile);
+        Task<UserProfile> GetUserProfileByUidAsync(string uid);
+        Task<bool> DeleteAsync(UserProfile userProfile);
     }
 }
