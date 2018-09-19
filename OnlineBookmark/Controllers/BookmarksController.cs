@@ -32,50 +32,9 @@ namespace OnlineBookmark.Controllers
             // 画像が送られてきたら保存
             if (model.ImageFile != null)
             {
-                // TODO: この辺の処理を別クラスへ切り出す
-
-                var tempDirPath = Path.Combine(new string[]
-                {
-                    this._hostingEnvironment.WebRootPath,
-                    "bookmarks",
-                    "images",
-                    Convert.ToBase64String(Guid.NewGuid().ToByteArray())
-                        .Replace("/", "-")
-                        .Replace("+", "_")
-                        .Replace("=", "")
-                });
-
-                if (!Directory.Exists(tempDirPath))
-                {
-                    try
-                    {
-                        Directory.CreateDirectory(tempDirPath);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.Message);
-                        return BadRequest("Fail to save the bookmark.");
-                    }
-                }
-
-                var tempFilePath = Path.Combine(new string[] {
-                    tempDirPath,
-                    $"{DateTime.Now.ToString("yyyyMMddHHmmss")}{Path.GetExtension(model.ImageFile.FileName)}"
-                });
-
-                try
-                {
-                    using (var stream = new FileStream(tempFilePath, FileMode.Create))
-                    {
-                        await model.ImageFile.CopyToAsync(stream);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                    return BadRequest("Fail to save the bookmark.");
-                }
-
+                var imageFilePath = await this.SaveBookmarkImageAsync(model.ImageFile);
+                if (imageFilePath == null)
+                    return BadRequest("Fail to save the bookmark image.");
             }
 
 
@@ -83,6 +42,65 @@ namespace OnlineBookmark.Controllers
                 return RedirectToAction("Index", "Top");
 
             return Redirect(returnUrl);
+        }
+
+
+        /// <summary>
+        /// 画像ファイルをbookmarks/images/<base64string>/フォルダに保存して、ファイルパスを返す
+        /// </summary>
+        /// <param name="imageFile"></param>
+        /// <returns></returns>
+        private async Task<string> SaveBookmarkImageAsync(IFormFile imageFile)
+        {
+            if (imageFile == null)
+                return null;
+
+            // ファイルを保存するディレクトリのパスを作成
+            var tempDirPath = Path.Combine(new string[]
+            {
+                this._hostingEnvironment.WebRootPath,
+                "bookmarks",
+                "images",
+                Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                    .Replace("/", "-")
+                    .Replace("+", "_")
+                    .Replace("=", "")
+            });
+
+            // フォルダを作成
+            if (!Directory.Exists(tempDirPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(tempDirPath);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                    return null;
+                }
+            }
+
+            // ファイルパスを作成
+            var tempFilePath = Path.Combine(new string[] {
+                tempDirPath,
+                $"{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(imageFile.FileName)}"
+            });
+
+            try
+            {
+                using (var stream = new FileStream(tempFilePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return null;
+            }
+
+            return tempFilePath;
         }
     }
 }
