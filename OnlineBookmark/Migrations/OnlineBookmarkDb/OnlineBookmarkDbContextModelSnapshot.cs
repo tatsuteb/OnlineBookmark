@@ -18,6 +18,59 @@ namespace OnlineBookmark.Migrations.OnlineBookmarkDb
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("OnlineBookmark.Data.Models.Bookmark", b =>
+                {
+                    b.Property<string>("Bid")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("BaseBid")
+                        .IsRequired();
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Title");
+
+                    b.HasKey("Bid");
+
+                    b.ToTable("Bookmarks");
+                });
+
+            modelBuilder.Entity("OnlineBookmark.Data.Models.BookmarkBase", b =>
+                {
+                    b.Property<string>("BaseBid")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ImageFilePath");
+
+                    b.Property<string>("LinkedUrl");
+
+                    b.Property<string>("OwnerUid")
+                        .IsRequired();
+
+                    b.HasKey("BaseBid");
+
+                    b.ToTable("BookmarkBases");
+                });
+
+            modelBuilder.Entity("OnlineBookmark.Data.Models.UserBookmark", b =>
+                {
+                    b.Property<decimal>("Seq")
+                        .ValueGeneratedOnAdd()
+                        .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)));
+
+                    b.Property<string>("Bid")
+                        .IsRequired();
+
+                    b.Property<bool>("IsPrivate");
+
+                    b.Property<string>("Uid")
+                        .IsRequired();
+
+                    b.HasKey("Seq");
+
+                    b.ToTable("UserBookmarks");
+                });
+
             modelBuilder.Entity("OnlineBookmark.Data.Models.UserProfile", b =>
                 {
                     b.Property<string>("Uid")

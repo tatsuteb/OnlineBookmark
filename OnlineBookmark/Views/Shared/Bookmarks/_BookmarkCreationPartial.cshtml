@@ -14,10 +14,20 @@
         URL
         <input type="text" asp-for="@Model.Url" />
     </label>
+    
+    <label>
+        タイトル
+        <input type="text" asp-for="@Model.Title" />
+    </label>
 
     <label>
         説明
         <textarea asp-for="@Model.Description" rows="20" cols="20"></textarea>
+    </label>
+    
+    <label>
+        プライベート
+        <input type="checkbox" asp-for="@Model.IsPrivate" />
     </label>
 
     <button type="submit">登録</button>

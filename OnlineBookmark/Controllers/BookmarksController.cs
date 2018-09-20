@@ -7,7 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OnlineBookmark.Areas.Identity.Data;
+using OnlineBookmark.Data;
+using OnlineBookmark.Data.Models;
+using OnlineBookmark.Models;
 using OnlineBookmark.Models.Bookmarks;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -18,24 +23,95 @@ namespace OnlineBookmark.Controllers
     public class BookmarksController : Controller
     {
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly SignInManager<OnlineBookmarkUser> _signInManager;
+        private readonly UserManager<OnlineBookmarkUser> _userManager;
+        private readonly OnlineBookmarkDbContext _dbContext;
 
 
-        public BookmarksController(IHostingEnvironment hostingEnvironment)
+        public BookmarksController(
+            IHostingEnvironment hostingEnvironment,
+            SignInManager<OnlineBookmarkUser> signInManager,
+            UserManager<OnlineBookmarkUser> userManager,
+            OnlineBookmarkDbContext dbContext
+            )
         {
             this._hostingEnvironment = hostingEnvironment;
+            this._signInManager = signInManager;
+            this._userManager = userManager;
+            this._dbContext = dbContext;
         }
 
 
+        /// <summary>
+        /// ブックマークを登録
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="returnUrl"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> CreateBookmark(BookmarkCreationModel model, string returnUrl)
         {
+            if (!this._signInManager.IsSignedIn(HttpContext.User))
+                return Unauthorized();
+
+            var user = await this._userManager.GetUserAsync(HttpContext.User);
+
+            if (user == null)
+                return BadRequest("User is not found.");
+
+            var bookmarkBase = new BookmarkBase()
+            {
+                BaseBid = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                    .Replace("/", "-")
+                    .Replace("+", "_")
+                    .Replace("=", ""),
+                OwnerUid = user.Uid,
+                LinkedUrl = model.Url
+            };
+
             // 画像が送られてきたら保存
             if (model.ImageFile != null)
             {
                 var imageFilePath = await this.SaveBookmarkImageAsync(model.ImageFile);
                 if (imageFilePath == null)
                     return BadRequest("Fail to save the bookmark image.");
+
+                bookmarkBase.ImageFilePath = imageFilePath;
             }
+
+
+            // ブックマークの基本情報をDBに保存
+            await this._dbContext.BookmarkBases
+                .AddAsync(bookmarkBase);
+
+
+            // ブックマークをDBに保存
+            var bookmark = new Bookmark()
+            {
+                Bid = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                    .Replace("/", "-")
+                    .Replace("+", "_")
+                    .Replace("=", ""),
+                BaseBid = bookmarkBase.BaseBid,
+                Title = model.Title,
+                Description = model.Description
+            };
+            await this._dbContext.Bookmarks
+                .AddAsync(bookmark);
+
+
+            // ユーザーとブックマークの関連をDBに保存
+            await this._dbContext.UserBookmarks
+                .AddAsync(new UserBookmark()
+                {
+                    Uid = user.Uid,
+                    Bid = bookmark.Bid,
+                    IsPrivate = model.IsPrivate
+                });
+
+
+            // DBへの変更を保存
+            await this._dbContext.SaveChangesAsync();
 
 
             if (string.IsNullOrEmpty(returnUrl))
