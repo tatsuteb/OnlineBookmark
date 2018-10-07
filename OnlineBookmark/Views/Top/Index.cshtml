@@ -1,9 +1,25 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model OnlineBookmark.Models.Top.TopViewModel
 @{
 }
 
 <div>
-    <partial name="Bookmarks/_BookmarkCreationPartial"/>
+    <partial name="Bookmarks/_BookmarkCreationPartial" model="@Model.BookmarkCreationViewModel"/>
+</div>
+
+<div>
+    @foreach (var bookmark in Model.BookmarkViewModels)
+    {
+        <div>
+            @* 画像 *@
+            <img src="@bookmark.Path" />
+            @* URL *@
+            <a href="@bookmark.Url">@bookmark.Url</a>
+            @* タイトル *@
+            <h2>@bookmark.Title</h2>
+            @* 説明 *@
+            <p>@bookmark.Description</p>
+            @* ブックマークユーザー名（所有者ではない） *@
+            <span>@bookmark.Username</span>
+        </div>
+    }
 </div>

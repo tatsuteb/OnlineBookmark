@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace OnlineBookmark.Models.Bookmarks
 {
-    public class BookmarkCreationModel
+    public class BookmarkCreationViewModel
     {
         public IFormFile ImageFile { get; set; }
         public string Url { get; set; }

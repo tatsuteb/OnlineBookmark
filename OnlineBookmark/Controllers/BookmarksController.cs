@@ -45,11 +45,11 @@ namespace OnlineBookmark.Controllers
         /// <summary>
         /// ブックマークを登録
         /// </summary>
-        /// <param name="model"></param>
+        /// <param name="viewModel"></param>
         /// <param name="returnUrl"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<IActionResult> CreateBookmark(BookmarkCreationModel model, string returnUrl)
+        public async Task<IActionResult> CreateBookmark(BookmarkCreationViewModel viewModel, string returnUrl)
         {
             if (!this._signInManager.IsSignedIn(HttpContext.User))
                 return Unauthorized();
@@ -66,13 +66,13 @@ namespace OnlineBookmark.Controllers
                     .Replace("+", "_")
                     .Replace("=", ""),
                 OwnerUid = user.Uid,
-                LinkedUrl = model.Url
+                LinkedUrl = viewModel.Url
             };
 
             // 画像が送られてきたら保存
-            if (model.ImageFile != null)
+            if (viewModel.ImageFile != null)
             {
-                var imageFilePath = await this.SaveBookmarkImageAsync(model.ImageFile);
+                var imageFilePath = await this.SaveBookmarkImageAsync(viewModel.ImageFile);
                 if (imageFilePath == null)
                     return BadRequest("Fail to save the bookmark image.");
 
@@ -93,8 +93,8 @@ namespace OnlineBookmark.Controllers
                     .Replace("+", "_")
                     .Replace("=", ""),
                 BaseBid = bookmarkBase.BaseBid,
-                Title = model.Title,
-                Description = model.Description
+                Title = viewModel.Title,
+                Description = viewModel.Description
             };
             await this._dbContext.Bookmarks
                 .AddAsync(bookmark);
@@ -106,7 +106,7 @@ namespace OnlineBookmark.Controllers
                 {
                     Uid = user.Uid,
                     Bid = bookmark.Bid,
-                    IsPrivate = model.IsPrivate
+                    IsPrivate = viewModel.IsPrivate
                 });
 
 
@@ -131,16 +131,22 @@ namespace OnlineBookmark.Controllers
             if (imageFile == null)
                 return null;
 
-            // ファイルを保存するディレクトリのパスを作成
-            var tempDirPath = Path.Combine(new string[]
+            // HTMLから参照する相対パスを作成
+            var relativePath = Path.Combine(new string[]
             {
-                this._hostingEnvironment.WebRootPath,
                 "bookmarks",
                 "images",
                 Convert.ToBase64String(Guid.NewGuid().ToByteArray())
                     .Replace("/", "-")
                     .Replace("+", "_")
                     .Replace("=", "")
+            });
+
+            // ファイルを保存するディレクトリのパスを作成
+            var tempDirPath = Path.Combine(new string[]
+            {
+                this._hostingEnvironment.WebRootPath,
+                relativePath
             });
 
             // フォルダを作成
@@ -157,10 +163,12 @@ namespace OnlineBookmark.Controllers
                 }
             }
 
+            // ファイル名を作成
+            var tempFileName = $"{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(imageFile.FileName)}";
             // ファイルパスを作成
             var tempFilePath = Path.Combine(new string[] {
                 tempDirPath,
-                $"{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(imageFile.FileName)}"
+                tempFileName
             });
 
             try
@@ -176,7 +184,12 @@ namespace OnlineBookmark.Controllers
                 return null;
             }
 
-            return tempFilePath;
+            
+            return Path.Combine(new string[]
+            {
+                relativePath,
+                tempFileName
+            });
         }
     }
 }
